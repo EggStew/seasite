@@ -98,7 +98,7 @@
 
             // Turret model
 
-            const loader = new GLTFLoader().setPath('models/gltf/');
+            const loader = new GLTFLoader().setPath('./models');
 
             loader.load('turret.gltf', function (gltf) {
 
@@ -152,7 +152,7 @@
                 {
                     textureWidth: 512,
                     textureHeight: 512,
-                    waterNormals: new THREE.TextureLoader().load('textures/waternormals.jpg', function (texture) {
+                    waterNormals: new THREE.TextureLoader().load('./textures/waternormals.jpg', function (texture) {
 
                         texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
 
@@ -222,7 +222,7 @@
             //Creating Geometry for Ocean floor
 
             const geometrysea = new THREE.BoxGeometry(2500, 10, 2500);
-            const materialsea = new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('textures/sand-texture 2.jpg') });
+            const materialsea = new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./textures/sand-texture 2.jpg') });
             const cubesea = new THREE.Mesh(geometrysea, materialsea);
             cubesea.position.set(0, -1001, 0)
             scene.add(cubesea);
