@@ -1,12 +1,3 @@
-
-
-import { OrbitControls } from 'https://rawgit.com/mrdoob/three.js/dev/examples/jsm/controls/OrbitControls.js';
-import Stats from 'https://rawgit.com/mrdoob/three.js/dev/examples/jsm/libs/stats.module.js';
-import { GLTFLoader } from 'https://rawgit.com/mrdoob/three.js/dev/examples/jsm/loaders/GLTFLoader.js';
-import { GUI } from 'https://rawgit.com/mrdoob/three.js/dev/examples/jsm/libs/dat.gui.module.js';
-import { Water } from 'https://rawgit.com/mrdoob/three.js/dev/examples/jsm/objects/Water.js';
-import { Sky } from 'https://rawgit.com/mrdoob/three.js/dev/examples/jsm/objects/Sky.js';
-
 let container, stats;
 let camera, scene, renderer;
 let controls, water, sun, mesh;
