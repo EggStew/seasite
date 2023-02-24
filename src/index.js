@@ -7,6 +7,10 @@ import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min';
 import { Water } from 'three/examples/jsm/objects/Water';
 import { Sky } from 'three/examples/jsm/objects/Sky';
 
+import watertexture from './waternormals.jpg';
+import sandtexture from './sand-texture-2.jpg';
+
+
 let container, stats;
 let camera, scene, renderer;
 let controls, water, sun, mesh;
@@ -64,10 +68,10 @@ function hovered() {
   }
 }
 
-function modelinit() {
+/* function modelinit() {
   // Turret model
 
-  const loader = new GLTFLoader().setPath("./static");
+  const loader = new GLTFLoader().setPath("./static/models/turret/gl");
 
   loader.load("turret.gltf", function (gltf) {
     const modelturret = gltf.scene;
@@ -83,9 +87,35 @@ function modelinit() {
 
     scene.add(gltf.scene);
   });
-}
+} */
 
 function init() {
+
+  //loading turret model
+
+  const gltfLoader = new GLTFLoader();
+  
+  gltfLoader.load(
+    './models/turret/glTF/turret.gltf',
+    (gltf) =>
+    {
+      const modelturret = gltf.scene;
+
+    const newMaterial = new THREE.MeshStandardMaterial(metalMaterial);
+    modelturret.traverse((o) => {
+      if (o.isMesh) o.material = newMaterial;
+    });
+
+    modelturret.scale.set(2, 2, 2);
+
+    modelturret.position.set(0, -2, 0);
+
+    scene.add(gltf.scene);
+    }
+  )
+
+  //
+
   container = document.getElementById("container");
   container.innerHTML = "";
   //
@@ -119,8 +149,7 @@ function init() {
   water = new Water(waterGeometry, {
     textureWidth: 512,
     textureHeight: 512,
-    waterNormals: new THREE.TextureLoader().load(
-      "./textures/waternormals.jpg",
+    waterNormals: new THREE.TextureLoader().load(watertexture,
       function (texture) {
         texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
       }
@@ -129,7 +158,7 @@ function init() {
     sunColor: 0xffffff,
     waterColor: 0x001e0f,
     distortionScale: 3.7,
-    fog: (scene.fog = new THREE.Fog(0x003366, 10, 500)),
+    //fog: (scene.fog = new THREE.Fog(0x003366, 10, 500)),
   });
 
   water.rotation.x = -Math.PI / 2;
@@ -188,7 +217,7 @@ function init() {
 
   const geometrysea = new THREE.BoxGeometry(2500, 10, 2500);
   const materialsea = new THREE.MeshBasicMaterial({
-    map: new THREE.TextureLoader().load("./textures/sand-texture 2.jpg"),
+    map: new THREE.TextureLoader().load(sandtexture),
   });
   const cubesea = new THREE.Mesh(geometrysea, materialsea);
   cubesea.position.set(0, -1001, 0);
@@ -269,7 +298,7 @@ function init() {
 
   // Initialise the loaded gltf model
 
-  modelinit();
+  //modelinit();
 
   // Calls the window resize function
 
@@ -278,7 +307,7 @@ function init() {
   window.addEventListener("mousemove", onMouseMove);
 }
 
-function spawnChainUsingBezier(curve, counter) {
+function spawnChainUsingBezier(curve) {
   // Creating points array from curve, equal to the number of instanced chain links
 
   const points1 = curve.getPoints(1500);
