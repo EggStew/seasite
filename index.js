@@ -1,3 +1,12 @@
+import * as THREE from 'three'
+
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import Stats from 'three/examples/jsm/libs/stats.module';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min';
+import { Water } from 'three/examples/jsm/objects/Water';
+import { Sky } from 'three/examples/jsm/objects/Sky';
+
 let container, stats;
 let camera, scene, renderer;
 let controls, water, sun, mesh;
@@ -58,7 +67,7 @@ function hovered() {
 function modelinit() {
   // Turret model
 
-  const loader = new GLTFLoader().setPath("./models");
+  const loader = new GLTFLoader().setPath("./static");
 
   loader.load("turret.gltf", function (gltf) {
     const modelturret = gltf.scene;
