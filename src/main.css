@@ -1,9 +1,9 @@
 .info {
+	position: absolute;
+	z-index: 100;
+	text-align: center;
+	left: 45%;
     color: blue;
-}
-
-.info a {
-    color: blue
 }
 
 :root {

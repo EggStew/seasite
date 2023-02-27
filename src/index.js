@@ -1,11 +1,13 @@
 import * as THREE from 'three'
 
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { FlyControls } from 'three/examples/jsm/controls/FlyControls'
 import Stats from 'three/examples/jsm/libs/stats.module';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min';
 import { Water } from 'three/examples/jsm/objects/Water';
 import { Sky } from 'three/examples/jsm/objects/Sky';
+
+import gsap from 'gsap';
 
 import watertexture from './waternormals.jpg';
 import sandtexture from './sand-texture-2.jpg';
@@ -13,21 +15,15 @@ import sandtexture from './sand-texture-2.jpg';
 
 let container, stats;
 let camera, scene, renderer;
-let controls, water, sun, mesh;
-let texture;
-
-let INTERSECTED;
-let theta = 0;
-
-const worldWidth = 256,
-  worldDepth = 256,
-  worldHalfWidth = worldWidth / 2,
-  worldHalfDepth = worldDepth / 2;
+let controlscam, water, sun;
+let cube1, cube1BB
 
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 let prevhovered;
 let originalColor;
+
+const clock = new THREE.Clock();
 
 const metalMaterial = {
   metalness: 1.0,
@@ -49,18 +45,14 @@ function onMouseMove(event) {
 
 function hovered() {
   raycaster.setFromCamera(mouse, camera);
-  const intersects = raycaster.intersectObjects(scene.children);
+  const intersects = raycaster.intersectObjects(scene.children, true);
   for (let i = 0; i < intersects.length; i++) {
-    if (intersects[i].object === prevhovered) {
-      break;
-    } else {
-      if (prevhovered != null) {
-        prevhovered.material.color.set(originalColor);
+    if (intersects[i].object.name === "chain"){ // &! intersects[i].object === prevhovered) {
+      
+      if ( prevhovered != null){// || prevhovered != intersects[i].object.name) {
+        prevhovered.material.color.set(originalColor); // reset previous to original colour
       }
-    }
-    if (intersects[i].object.name === "chain") {
       originalColor = intersects[i].object.material.color.getHex(); //16777215
-
       prevhovered = intersects[i].object;
       prevhovered.material.color.set(0xff2e2e);
       break;
@@ -68,49 +60,52 @@ function hovered() {
   }
 }
 
-/* function modelinit() {
-  // Turret model
+function onClick(event) {
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObjects(scene.children, true);
+  for (let i = 0; i < intersects.length; i++) {
+    if (intersects[i].object.name === "chain"){
 
-  const loader = new GLTFLoader().setPath("./static/models/turret/gl");
+      gsap.to(camera.position, {
+        x: 379,
+        y: -625,
+        z: 456,
+        duration: 2
+      });
 
-  loader.load("turret.gltf", function (gltf) {
-    const modelturret = gltf.scene;
-
-    const newMaterial = new THREE.MeshStandardMaterial(metalMaterial);
-    modelturret.traverse((o) => {
-      if (o.isMesh) o.material = newMaterial;
-    });
-
-    modelturret.scale.set(2, 2, 2);
-
-    modelturret.position.set(0, -2, 0);
-
-    scene.add(gltf.scene);
-  });
-} */
+      gsap.to(camera.rotation, {
+        x: -0.5,
+        y: -0.38,
+        z: -0.17,
+        duration: 2
+      });
+      
+      
+    }
+  }
+}
 
 function init() {
 
   //loading turret model
 
   const gltfLoader = new GLTFLoader();
-  
+
   gltfLoader.load(
     './models/turret/glTF/turret.gltf',
-    (gltf) =>
-    {
+    (gltf) => {
       const modelturret = gltf.scene;
 
-    const newMaterial = new THREE.MeshStandardMaterial(metalMaterial);
-    modelturret.traverse((o) => {
-      if (o.isMesh) o.material = newMaterial;
-    });
+      const newMaterial = new THREE.MeshStandardMaterial(metalMaterial);
+      modelturret.traverse((o) => {
+        if (o.isMesh) o.material = newMaterial;
+      });
 
-    modelturret.scale.set(2, 2, 2);
+      modelturret.scale.set(2, 2, 2);
 
-    modelturret.position.set(0, -2, 0);
+      modelturret.position.set(0, -2, 0);
 
-    scene.add(gltf.scene);
+      scene.add(gltf.scene);
     }
   )
 
@@ -130,13 +125,9 @@ function init() {
 
   scene = new THREE.Scene();
 
-  camera = new THREE.PerspectiveCamera(
-    60,
-    window.innerWidth / window.innerHeight,
-    1,
-    5000
-  );
+  camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 5000);
   camera.position.set(30, 30, 100);
+  camera.lookAt(-30,30,-100)
 
   //
 
@@ -158,7 +149,7 @@ function init() {
     sunColor: 0xffffff,
     waterColor: 0x001e0f,
     distortionScale: 3.7,
-    //fog: (scene.fog = new THREE.Fog(0x003366, 10, 500)),
+    fog: (scene.fog = new THREE.Fog(0x003366, 10, 500)),
   });
 
   water.rotation.x = -Math.PI / 2;
@@ -261,15 +252,19 @@ function init() {
     counter += 1;
   }
 
-  // Orbit Controls
-  controls = new OrbitControls(camera, renderer.domElement);
-  controls.maxPolarAngle = Math.PI * 0.495;
-  controls.target.set(0, 10, 0);
-  controls.minDistance = 0.0;
-  controls.maxDistance = 200.0;
-  controls.update();
+  // Fly Controls 
 
-  //
+  controlscam = new FlyControls(camera, renderer.domElement);
+
+  controlscam.enabled = false;
+  controlscam.movementSpeed = 50;
+  controlscam.domElement = renderer.domElement;
+  controlscam.rollSpeed = 0.5;
+  controlscam.enableRotate = false;
+  controlscam.autoForward = false;
+  controlscam.dragToLook = true;
+
+  // Stats Module
 
   stats = new Stats();
   container.appendChild(stats.dom);
@@ -300,11 +295,29 @@ function init() {
 
   //modelinit();
 
+  // Creating bounding box
+
+  cube1 = new THREE.Mesh(
+    new THREE.BoxGeometry(1250,1250,1250),
+    new THREE.MeshPhongMaterial({ color: 0xff0000})
+  );
+  cube1.position.set(0, 10, 0)
+
+  cube1BB = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3());
+  cube1BB.setFromObject(cube1);
+
+
   // Calls the window resize function
 
   window.addEventListener("resize", onWindowResize);
 
+  // Checks for mouse movement
+
   window.addEventListener("mousemove", onMouseMove);
+
+  // Checks for click 
+
+  window.addEventListener("click", onClick);
 }
 
 function spawnChainUsingBezier(curve) {
@@ -367,15 +380,51 @@ function onWindowResize() {
 }
 
 function animate() {
+
   requestAnimationFrame(animate);
+
+  checkCollision();
+
   render();
+
   stats.update();
 }
 
 function render() {
+
   const time = performance.now() * 0.001;
 
   water.material.uniforms["time"].value += 0.5 / 60.0;
 
+  const delta = clock.getDelta();
+
+  controlscam.update(delta);
+
   renderer.render(scene, camera);
+}
+
+function checkCollision() {
+  if(camera.position.x > cube1BB.max.x){
+    camera.position.x = cube1BB.max.x;
+}
+
+if(camera.position.x < cube1BB.min.x){
+    camera.position.x = cube1BB.min.x;
+}
+
+if(camera.position.z > cube1BB.max.z){
+    camera.position.z = cube1BB.max.z;
+}
+
+if(camera.position.z < cube1BB.min.z){
+    camera.position.z = cube1BB.min.z;
+}
+
+if(camera.position.y > cube1BB.max.z){
+  camera.position.y = cube1BB.max.z;
+}
+
+if(camera.position.y < cube1BB.min.z){
+  camera.position.y = cube1BB.min.z;
+}
 }
